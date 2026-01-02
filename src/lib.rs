@@ -12,8 +12,8 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     let mut chars = source.chars().peekable();
     let mut tokens = Vec::new();
 
-    while let Some(&char) = chars.peek() {
-        match char {
+    while let Some(&ch) = chars.peek() {
+        match ch {
             _ => match tokenize_literal(&mut chars) {
                 Ok(token) => tokens.push(token),
                 Err(e) => return Err(e),
@@ -24,15 +24,33 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     Ok(tokens)
 }
 
+fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+    chars.next(); // opening quote
+
+    let mut string = String::new();
+
+    while let Some(&ch) = chars.peek() {
+        match ch {
+            '"' => break,
+            _ => {
+                chars.next();
+                string.push(ch);
+            }
+        }
+    }
+
+    Ok(string)
+}
+
 fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     let mut literal = String::new();
 
-    while let Some(&char) = chars.peek() {
-        match char {
+    while let Some(&ch) = chars.peek() {
+        match ch {
             ',' | '[' | ']' | '{' | '}' | ':' | '"' | '\r' | '\n' | '\t' | ' ' => break,
             _ => {
                 chars.next();
-                literal.push(char);
+                literal.push(ch);
             }
         }
     }
