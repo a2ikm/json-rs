@@ -3,6 +3,7 @@ use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
+    String(String),
     True,
     False,
     Null,
@@ -14,6 +15,10 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
 
     while let Some(&ch) = chars.peek() {
         match ch {
+            '"' => match tokenize_string(&mut chars) {
+                Ok(token) => tokens.push(token),
+                Err(e) => return Err(e),
+            },
             _ => match tokenize_literal(&mut chars) {
                 Ok(token) => tokens.push(token),
                 Err(e) => return Err(e),
@@ -29,17 +34,16 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
 
     let mut string = String::new();
 
-    while let Some(&ch) = chars.peek() {
+    while let Some(ch) = chars.next() {
         match ch {
             '"' => break,
             _ => {
-                chars.next();
                 string.push(ch);
             }
         }
     }
 
-    Ok(string)
+    Ok(Token::String(string))
 }
 
 fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
@@ -69,6 +73,10 @@ mod tests {
 
     #[test]
     fn tokenize_successful() {
+        assert_eq!(
+            tokenize("\"foo\""),
+            Ok(vec![Token::String("foo".to_string())])
+        );
         assert_eq!(tokenize("true"), Ok(vec![Token::True]));
         assert_eq!(tokenize("false"), Ok(vec![Token::False]));
         assert_eq!(tokenize("null"), Ok(vec![Token::Null]));
