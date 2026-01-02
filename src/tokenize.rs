@@ -149,12 +149,11 @@ fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     let mut literal = String::new();
 
     while let Some(&ch) = chars.peek() {
-        match ch {
-            ',' | '[' | ']' | '{' | '}' | ':' | '"' | '\r' | '\n' | '\t' | ' ' => break,
-            _ => {
-                chars.next();
-                literal.push(ch);
-            }
+        if ch.is_ascii_alphanumeric() {
+            chars.next();
+            literal.push(ch);
+        } else {
+            break;
         }
     }
 
