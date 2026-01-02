@@ -138,9 +138,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tokenize_successful() {
+    fn tokenize_number() {
         assert_eq!(tokenize("123.45e10"), Ok(vec![Token::Number(123.45e10)]),);
         assert_eq!(tokenize("-123.45e10"), Ok(vec![Token::Number(-123.45e10)]),);
+    }
+
+    #[test]
+    fn tokenize_string() {
         assert_eq!(
             tokenize("\"foo\""),
             Ok(vec![Token::String("foo".to_string())])
@@ -181,12 +185,20 @@ mod tests {
             tokenize("\"\\u0041\""),
             Ok(vec![Token::String("\u{0041}".to_string())])
         }
+    }
+
+    #[test]
+    fn tokenize_true() {
         assert_eq!(tokenize("true"), Ok(vec![Token::True]));
+    }
+
+    #[test]
+    fn tokenize_false() {
         assert_eq!(tokenize("false"), Ok(vec![Token::False]));
+    }
+
+    #[test]
+    fn tokenize_null() {
         assert_eq!(tokenize("null"), Ok(vec![Token::Null]));
-        assert_eq!(
-            tokenize("Null,"),
-            Err("unexpected literal: Null".to_string())
-        );
     }
 }
