@@ -3,6 +3,12 @@ use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
+    LeftSquareBracket,  // [
+    LeftCurlyBracket,   // (
+    RightSquareBracket, // ]
+    RightCurlyBracket,  // )
+    Colon,              // :
+    Comma,              // ,
     String(String),
     Number(f64),
     True,
@@ -16,6 +22,30 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
 
     while let Some(&ch) = chars.peek() {
         match ch {
+            '[' => {
+                tokens.push(Token::LeftSquareBracket);
+                chars.next();
+            }
+            '(' => {
+                tokens.push(Token::LeftCurlyBracket);
+                chars.next();
+            }
+            ']' => {
+                tokens.push(Token::RightSquareBracket);
+                chars.next();
+            }
+            ')' => {
+                tokens.push(Token::RightCurlyBracket);
+                chars.next();
+            }
+            ':' => {
+                tokens.push(Token::Colon);
+                chars.next();
+            }
+            ',' => {
+                tokens.push(Token::Comma);
+                chars.next();
+            }
             '-' | '0'..='9' => match tokenize_number(&mut chars) {
                 Ok(token) => tokens.push(token),
                 Err(e) => return Err(e),
@@ -136,6 +166,36 @@ fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tokenize_left_square_bracket() {
+        assert_eq!(tokenize("["), Ok(vec![Token::LeftSquareBracket]));
+    }
+
+    #[test]
+    fn tokenize_left_curly_bracket() {
+        assert_eq!(tokenize("("), Ok(vec![Token::LeftCurlyBracket]));
+    }
+
+    #[test]
+    fn tokenize_right_square_bracket() {
+        assert_eq!(tokenize("]"), Ok(vec![Token::RightSquareBracket]));
+    }
+
+    #[test]
+    fn tokenize_right_curly_bracket() {
+        assert_eq!(tokenize(")"), Ok(vec![Token::RightCurlyBracket]));
+    }
+
+    #[test]
+    fn tokenize_colon() {
+        assert_eq!(tokenize(":"), Ok(vec![Token::Colon]));
+    }
+
+    #[test]
+    fn tokenize_comma_bracket() {
+        assert_eq!(tokenize(","), Ok(vec![Token::Comma]));
+    }
 
     #[test]
     fn tokenize_number() {
