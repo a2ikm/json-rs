@@ -22,6 +22,9 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
 
     while let Some(&ch) = chars.peek() {
         match ch {
+            ' ' | '\t' | '\n' | '\r' => {
+                chars.next();
+            }
             '[' => {
                 tokens.push(Token::LeftSquareBracket);
                 chars.next();
@@ -166,6 +169,11 @@ fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tokenize_whitespace() {
+        assert_eq!(tokenize(" \t\r\n"), Ok(vec![]));
+    }
 
     #[test]
     fn tokenize_left_square_bracket() {
