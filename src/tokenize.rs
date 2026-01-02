@@ -106,33 +106,7 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
                         'r' => string.push('\u{000d}'),
                         't' => string.push('\u{0009}'),
                         'u' => {
-                            let mut hex_digits = String::new();
-
-                            while let Some(&ch) = chars.peek() {
-                                if ch == '"' {
-                                    // To break the outer while loop with `"`, we can't consume it.
-                                    break;
-                                } else {
-                                    hex_digits.push(ch);
-                                    chars.next();
-                                    if hex_digits.len() == 4 {
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if hex_digits.len() != 4 {
-                                return Err(format!("invalid code point: {}", hex_digits));
-                            }
-
-                            let Ok(code_point) = u32::from_str_radix(&hex_digits, 16) else {
-                                return Err(format!("invalid code point: {}", hex_digits));
-                            };
-
-                            let Some(ch) = char::from_u32(code_point) else {
-                                return Err(format!("invalid code point: {}", hex_digits));
-                            };
-
+                            let ch = read_hex_digits_char(chars)?;
                             string.push(ch);
                         }
                         _ => return Err(format!("invalid escape sequence: {}", ch)),
@@ -148,6 +122,37 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     }
 
     Ok(Token::String(string))
+}
+
+fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
+    let mut hex_digits = String::new();
+
+    while let Some(&ch) = chars.peek() {
+        if ch == '"' {
+            // To break the outer while loop with `"`, we can't consume it.
+            break;
+        } else {
+            hex_digits.push(ch);
+            chars.next();
+            if hex_digits.len() == 4 {
+                break;
+            }
+        }
+    }
+
+    if hex_digits.len() != 4 {
+        return Err(format!("invalid code point: {}", hex_digits));
+    }
+
+    let Ok(code_point) = u32::from_str_radix(&hex_digits, 16) else {
+        return Err(format!("invalid code point: {}", hex_digits));
+    };
+
+    let Some(ch) = char::from_u32(code_point) else {
+        return Err(format!("invalid code point: {}", hex_digits));
+    };
+
+    Ok(ch)
 }
 
 fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
