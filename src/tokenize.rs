@@ -4,9 +4,9 @@ use std::str::Chars;
 #[derive(Debug, PartialEq)]
 pub enum Token {
     LeftSquareBracket,  // [
-    LeftCurlyBracket,   // (
+    LeftCurlyBracket,   // {
     RightSquareBracket, // ]
-    RightCurlyBracket,  // )
+    RightCurlyBracket,  // }
     Colon,              // :
     Comma,              // ,
     String(String),
@@ -29,7 +29,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
                 tokens.push(Token::LeftSquareBracket);
                 chars.next();
             }
-            '(' => {
+            '{' => {
                 tokens.push(Token::LeftCurlyBracket);
                 chars.next();
             }
@@ -37,7 +37,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
                 tokens.push(Token::RightSquareBracket);
                 chars.next();
             }
-            ')' => {
+            '}' => {
                 tokens.push(Token::RightCurlyBracket);
                 chars.next();
             }
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn tokenize_left_curly_bracket() {
-        assert_eq!(tokenize("("), Ok(vec![Token::LeftCurlyBracket]));
+        assert_eq!(tokenize("{"), Ok(vec![Token::LeftCurlyBracket]));
     }
 
     #[test]
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn tokenize_right_curly_bracket() {
-        assert_eq!(tokenize(")"), Ok(vec![Token::RightCurlyBracket]));
+        assert_eq!(tokenize("}"), Ok(vec![Token::RightCurlyBracket]));
     }
 
     #[test]
