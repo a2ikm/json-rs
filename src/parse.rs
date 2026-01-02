@@ -51,22 +51,23 @@ fn parse_array(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> 
     }
 
     loop {
-        match tokens.peek() {
-            Some(Token::RightSquareBracket) => {
-                tokens.next(); // consume bracket
-                return Ok(Value::Array(array));
+        if let Some(&token) = tokens.peek() {
+            match token {
+                Token::RightSquareBracket => {
+                    tokens.next(); // consume bracket
+                    return Ok(Value::Array(array));
+                }
+                Token::Comma => {
+                    tokens.next(); // consume comma
+                    let value = parse_value(tokens)?;
+                    array.push(value);
+                }
+                _ => {
+                    return Err(format!("unexpected token: {:?}", token));
+                }
             }
-            Some(Token::Comma) => {
-                tokens.next(); // consume comma
-                let value = parse_value(tokens)?;
-                array.push(value);
-            }
-            Some(&token) => {
-                return Err(format!("unexpected token: {:?}", token));
-            }
-            None => {
-                return Err("unexpected EOF".to_string());
-            }
+        } else {
+            return Err("unexpected EOF".to_string());
         }
     }
 }
@@ -86,22 +87,23 @@ fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String>
     }
 
     loop {
-        match tokens.peek() {
-            Some(Token::RightCurlyBracket) => {
-                tokens.next(); // consume bracket
-                return Ok(Value::Object(hash));
+        if let Some(&token) = tokens.peek() {
+            match token {
+                Token::RightCurlyBracket => {
+                    tokens.next(); // consume bracket
+                    return Ok(Value::Object(hash));
+                }
+                Token::Comma => {
+                    tokens.next(); // consume comma
+                    let (key, value) = parse_key_value_pair(tokens)?;
+                    hash.insert(key, value);
+                }
+                _ => {
+                    return Err(format!("unexpected token: {:?}", token));
+                }
             }
-            Some(Token::Comma) => {
-                tokens.next(); // consume comma
-                let (key, value) = parse_key_value_pair(tokens)?;
-                hash.insert(key, value);
-            }
-            Some(&token) => {
-                return Err(format!("unexpected token: {:?}", token));
-            }
-            None => {
-                return Err("unexpected EOF".to_string());
-            }
+        } else {
+            return Err("unexpected EOF".to_string());
         }
     }
 }
