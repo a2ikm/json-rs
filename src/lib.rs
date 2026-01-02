@@ -4,6 +4,7 @@ use std::str::Chars;
 #[derive(Debug, PartialEq)]
 pub enum Token {
     String(String),
+    Number(f64),
     True,
     False,
     Null,
@@ -15,6 +16,10 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
 
     while let Some(&ch) = chars.peek() {
         match ch {
+            '-' | '0'..='9' => match tokenize_number(&mut chars) {
+                Ok(token) => tokens.push(token),
+                Err(e) => return Err(e),
+            },
             '"' => match tokenize_string(&mut chars) {
                 Ok(token) => tokens.push(token),
                 Err(e) => return Err(e),
@@ -27,6 +32,25 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     }
 
     Ok(tokens)
+}
+
+fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+    let mut number = String::new();
+
+    while let Some(&ch) = chars.peek() {
+        match ch {
+            '-' | '+' | '0'..='9' | 'e' | 'E' | '.' => {
+                number.push(ch);
+                chars.next();
+            }
+            _ => break,
+        }
+    }
+
+    match number.parse::<f64>() {
+        Ok(value) => Ok(Token::Number(value)),
+        Err(_) => Err(format!("invalid number representation: {}", number)),
+    }
 }
 
 fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
@@ -115,6 +139,8 @@ mod tests {
 
     #[test]
     fn tokenize_successful() {
+        assert_eq!(tokenize("123.45e10"), Ok(vec![Token::Number(123.45e10)]),);
+        assert_eq!(tokenize("-123.45e10"), Ok(vec![Token::Number(-123.45e10)]),);
         assert_eq!(
             tokenize("\"foo\""),
             Ok(vec![Token::String("foo".to_string())])
