@@ -95,25 +95,8 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
         match ch {
             '"' => break,
             '\\' => {
-                if let Some(ch) = chars.next() {
-                    match ch {
-                        '"' => string.push('\u{0022}'),
-                        '\\' => string.push('\u{005c}'),
-                        '/' => string.push('\u{002f}'),
-                        'b' => string.push('\u{0008}'),
-                        'f' => string.push('\u{000c}'),
-                        'n' => string.push('\u{000a}'),
-                        'r' => string.push('\u{000d}'),
-                        't' => string.push('\u{0009}'),
-                        'u' => {
-                            let ch = read_hex_digits_char(chars)?;
-                            string.push(ch);
-                        }
-                        _ => return Err(format!("invalid escape sequence: {}", ch)),
-                    }
-                } else {
-                    return Err("unexpected EOF".to_string());
-                }
+                let ch = read_escaped_char(chars)?;
+                string.push(ch);
             }
             _ => {
                 string.push(ch);
@@ -122,6 +105,28 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     }
 
     Ok(Token::String(string))
+}
+
+fn read_escaped_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
+    if let Some(ch) = chars.next() {
+        match ch {
+            '"' => Ok('\u{0022}'),
+            '\\' => Ok('\u{005c}'),
+            '/' => Ok('\u{002f}'),
+            'b' => Ok('\u{0008}'),
+            'f' => Ok('\u{000c}'),
+            'n' => Ok('\u{000a}'),
+            'r' => Ok('\u{000d}'),
+            't' => Ok('\u{0009}'),
+            'u' => {
+                let ch = read_hex_digits_char(chars)?;
+                Ok(ch)
+            }
+            _ => Err(format!("invalid escape sequence: {}", ch)),
+        }
+    } else {
+        Err("unexpected EOF".to_string())
+    }
 }
 
 fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
