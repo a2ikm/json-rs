@@ -37,6 +37,18 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     while let Some(ch) = chars.next() {
         match ch {
             '"' => break,
+            '\\' => match chars.next() {
+                Some('"') => string.push('\u{0022}'),
+                Some('\\') => string.push('\u{005c}'),
+                Some('/') => string.push('\u{002f}'),
+                Some('b') => string.push('\u{0008}'),
+                Some('f') => string.push('\u{000c}'),
+                Some('n') => string.push('\u{000a}'),
+                Some('r') => string.push('\u{000d}'),
+                Some('t') => string.push('\u{0009}'),
+                Some(ch) => return Err(format!("invalid escape sequence: {}", ch)),
+                None => return Err("unexpected EOF".to_string()),
+            },
             _ => {
                 string.push(ch);
             }
@@ -76,6 +88,38 @@ mod tests {
         assert_eq!(
             tokenize("\"foo\""),
             Ok(vec![Token::String("foo".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\\"\""),
+            Ok(vec![Token::String("\u{0022}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\\\\""),
+            Ok(vec![Token::String("\u{005c}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\/"),
+            Ok(vec![Token::String("\u{002f}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\b"),
+            Ok(vec![Token::String("\u{0008}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\f\""),
+            Ok(vec![Token::String("\u{000c}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\n\""),
+            Ok(vec![Token::String("\u{000a}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\r\""),
+            Ok(vec![Token::String("\u{000d}".to_string())])
+        );
+        assert_eq!(
+            tokenize("\"\\t\""),
+            Ok(vec![Token::String("\u{0009}".to_string())])
         );
         assert_eq!(tokenize("true"), Ok(vec![Token::True]));
         assert_eq!(tokenize("false"), Ok(vec![Token::False]));
