@@ -16,7 +16,13 @@ pub enum Value {
 pub fn parse(source: &str) -> Result<Value, String> {
     let tokens = tokenize(source)?;
     let mut tokens = tokens.iter().peekable();
-    parse_value(&mut tokens)
+    let result = parse_value(&mut tokens);
+
+    if let Some(token) = tokens.peek() {
+        return Err(format!("unexpected token: {}", token));
+    }
+
+    result
 }
 
 fn parse_value(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> {
@@ -184,5 +190,10 @@ mod tests {
                 Value::String("bar".to_string())
             )])))
         );
+    }
+
+    #[test]
+    fn parse_error_trailing_token() {
+        assert_eq!(parse("{},"), Err("unexpected token: Comma".to_string()));
     }
 }
