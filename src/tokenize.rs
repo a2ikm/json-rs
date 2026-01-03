@@ -104,10 +104,7 @@ fn read_escaped_char(chars: &mut Peekable<Chars>) -> Result<char> {
             'n' => Ok('\u{000a}'),
             'r' => Ok('\u{000d}'),
             't' => Ok('\u{0009}'),
-            'u' => {
-                let ch = read_hex_digits_char(chars)?;
-                Ok(ch)
-            }
+            'u' => read_hex_digits_char(chars),
             _ => Err(Error::InvalidEscapeSequence(ch.to_string())),
         }
     } else {
