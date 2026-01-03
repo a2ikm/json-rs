@@ -25,5 +25,7 @@ impl fmt::Display for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub mod parse;
+mod parse;
 mod tokenize;
+
+pub use parse::parse;
