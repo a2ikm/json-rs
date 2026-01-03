@@ -1,3 +1,4 @@
+use crate::{Error, Result};
 use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
@@ -35,7 +36,7 @@ impl fmt::Display for Token {
     }
 }
 
-pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
+pub fn tokenize(source: &str) -> Result<Vec<Token>> {
     let mut chars = source.chars().peekable();
     let mut tokens = Vec::new();
 
@@ -86,7 +87,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     Ok(tokens)
 }
 
-fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token> {
     let mut number = String::new();
 
     while let Some(&ch) = chars.peek() {
@@ -101,11 +102,11 @@ fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
 
     match number.parse::<f64>() {
         Ok(value) => Ok(Token::Number(value)),
-        Err(_) => Err(format!("invalid literal: {}", number)),
+        Err(_) => Err(Error::InvalidLiteral(number)),
     }
 }
 
-fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token> {
     chars.next(); // opening quote
 
     let mut string = String::new();
@@ -126,7 +127,7 @@ fn tokenize_string(chars: &mut Peekable<Chars>) -> Result<Token, String> {
     Ok(Token::String(string))
 }
 
-fn read_escaped_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
+fn read_escaped_char(chars: &mut Peekable<Chars>) -> Result<char> {
     if let Some(ch) = chars.next() {
         match ch {
             '"' => Ok('\u{0022}'),
@@ -141,14 +142,14 @@ fn read_escaped_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
                 let ch = read_hex_digits_char(chars)?;
                 Ok(ch)
             }
-            _ => Err(format!("invalid escape sequence: {}", ch)),
+            _ => Err(Error::InvalidEscapeSequence(ch.to_string())),
         }
     } else {
-        Err("unexpected EOF".to_string())
+        Err(Error::UnexpectedEOF)
     }
 }
 
-fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
+fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char> {
     let mut hex_digits = String::new();
 
     while let Some(&ch) = chars.peek() {
@@ -165,21 +166,21 @@ fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char, String> {
     }
 
     if hex_digits.len() != 4 {
-        return Err(format!("invalid code point: {}", hex_digits));
+        return Err(Error::InvalidCodePoint(hex_digits));
     }
 
     let Ok(code_point) = u32::from_str_radix(&hex_digits, 16) else {
-        return Err(format!("invalid code point: {}", hex_digits));
+        return Err(Error::InvalidCodePoint(hex_digits));
     };
 
     let Some(ch) = char::from_u32(code_point) else {
-        return Err(format!("invalid code point: {}", hex_digits));
+        return Err(Error::InvalidCodePoint(hex_digits));
     };
 
     Ok(ch)
 }
 
-fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token> {
     let mut literal = String::new();
 
     while let Some(&ch) = chars.peek() {
@@ -195,7 +196,7 @@ fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
         "true" => Ok(Token::True),
         "false" => Ok(Token::False),
         "null" => Ok(Token::Null),
-        _ => Err(format!("invalid literal: {}", literal)),
+        _ => Err(Error::InvalidLiteral(literal)),
     }
 }
 

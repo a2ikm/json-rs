@@ -1,4 +1,5 @@
 use crate::tokenize::{Token, tokenize};
+use crate::{Error, Result};
 use std::collections::HashMap;
 use std::iter::Peekable;
 use std::slice::Iter;
@@ -13,19 +14,19 @@ pub enum Value {
     Null,
 }
 
-pub fn parse(source: &str) -> Result<Value, String> {
+pub fn parse(source: &str) -> Result<Value> {
     let tokens = tokenize(source)?;
     let mut tokens = tokens.iter().peekable();
     let result = parse_value(&mut tokens);
 
     if let Some(token) = tokens.peek() {
-        return Err(format!("unexpected token: {}", token));
+        return Err(Error::UnexpectedToken(token.to_string()));
     }
 
     result
 }
 
-fn parse_value(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> {
+fn parse_value(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value> {
     if let Some(token) = tokens.next() {
         match token {
             Token::Null => Ok(Value::Null),
@@ -35,14 +36,14 @@ fn parse_value(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> 
             Token::String(string) => Ok(Value::String(string.clone())),
             Token::LeftSquareBracket => parse_array(tokens),
             Token::LeftCurlyBracket => parse_object(tokens),
-            _ => Err(format!("unexpected token: {}", token)),
+            _ => Err(Error::UnexpectedToken(token.to_string())),
         }
     } else {
-        Err("unexpected EOF".to_string())
+        Err(Error::UnexpectedEOF)
     }
 }
 
-fn parse_array(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> {
+fn parse_array(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value> {
     let mut array = Vec::new();
 
     match tokens.peek() {
@@ -69,16 +70,16 @@ fn parse_array(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> 
                     array.push(value);
                 }
                 _ => {
-                    return Err(format!("unexpected token: {}", token));
+                    return Err(Error::UnexpectedToken(token.to_string()));
                 }
             }
         } else {
-            return Err("unexpected EOF".to_string());
+            return Err(Error::UnexpectedEOF);
         }
     }
 }
 
-fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> {
+fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value> {
     let mut hash = HashMap::new();
 
     match tokens.peek() {
@@ -105,26 +106,26 @@ fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String>
                     hash.insert(key, value);
                 }
                 _ => {
-                    return Err(format!("unexpected token: {}", token));
+                    return Err(Error::UnexpectedToken(token.to_string()));
                 }
             }
         } else {
-            return Err("unexpected EOF".to_string());
+            return Err(Error::UnexpectedEOF);
         }
     }
 }
 
-fn parse_key_value_pair(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<(String, Value), String> {
+fn parse_key_value_pair(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<(String, Value)> {
     let key = match tokens.next() {
         Some(Token::String(string)) => string.clone(),
-        Some(token) => return Err(format!("unexpected token: {}", token)),
-        None => return Err("unexpected EOF".to_string()),
+        Some(token) => return Err(Error::UnexpectedToken(token.to_string())),
+        None => return Err(Error::UnexpectedEOF),
     };
 
     match tokens.next() {
         Some(Token::Colon) => (),
-        Some(token) => return Err(format!("unexpected token: {}", token)),
-        None => return Err("unexpected EOF".to_string()),
+        Some(token) => return Err(Error::UnexpectedToken(token.to_string())),
+        None => return Err(Error::UnexpectedEOF),
     }
 
     let value = parse_value(tokens)?;
@@ -198,6 +199,6 @@ mod tests {
 
     #[test]
     fn parse_error_trailing_token() {
-        assert_eq!(parse("{},"), Err("unexpected token: ,".to_string()));
+        assert_eq!(parse("{},"), Err(Error::UnexpectedToken(",".to_string())));
     }
 }
