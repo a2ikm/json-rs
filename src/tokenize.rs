@@ -101,7 +101,7 @@ fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
 
     match number.parse::<f64>() {
         Ok(value) => Ok(Token::Number(value)),
-        Err(_) => Err(format!("invalid number representation: {}", number)),
+        Err(_) => Err(format!("invalid literal: {}", number)),
     }
 }
 
@@ -195,7 +195,7 @@ fn tokenize_literal(chars: &mut Peekable<Chars>) -> Result<Token, String> {
         "true" => Ok(Token::True),
         "false" => Ok(Token::False),
         "null" => Ok(Token::Null),
-        _ => Err(format!("unexpected literal: {}", literal)),
+        _ => Err(format!("invalid literal: {}", literal)),
     }
 }
 
