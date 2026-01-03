@@ -1,18 +1,8 @@
-use crate::tokenize::{Token, tokenize};
-use crate::{Error, Result};
+use crate::tokenize::tokenize;
+use crate::types::{Error, Result, Token, Value};
 use std::collections::HashMap;
 use std::iter::Peekable;
 use std::slice::Iter;
-
-#[derive(Debug, PartialEq)]
-pub enum Value {
-    Object(HashMap<String, Value>),
-    Array(Vec<Value>),
-    String(String),
-    Number(f64),
-    Bool(bool),
-    Null,
-}
 
 pub fn parse(source: &str) -> Result<Value> {
     let tokens = tokenize(source)?;

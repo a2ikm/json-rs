@@ -1,40 +1,6 @@
-use crate::{Error, Result};
-use std::fmt;
+use crate::types::{Error, Result, Token};
 use std::iter::Peekable;
 use std::str::Chars;
-
-#[derive(Debug, PartialEq)]
-pub enum Token {
-    LeftSquareBracket,  // [
-    LeftCurlyBracket,   // {
-    RightSquareBracket, // ]
-    RightCurlyBracket,  // }
-    Colon,              // :
-    Comma,              // ,
-    String(String),
-    Number(f64),
-    True,
-    False,
-    Null,
-}
-
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Token::LeftSquareBracket => write!(f, "["),
-            Token::LeftCurlyBracket => write!(f, "{{"),
-            Token::RightSquareBracket => write!(f, "]"),
-            Token::RightCurlyBracket => write!(f, "}}"),
-            Token::Colon => write!(f, ":"),
-            Token::Comma => write!(f, ","),
-            Token::String(string) => write!(f, "{:?}", *string),
-            Token::Number(number) => write!(f, "{:?}", *number),
-            Token::True => write!(f, "true"),
-            Token::False => write!(f, "false"),
-            Token::Null => write!(f, "null"),
-        }
-    }
-}
 
 pub fn tokenize(source: &str) -> Result<Vec<Token>> {
     let mut chars = source.chars().peekable();
