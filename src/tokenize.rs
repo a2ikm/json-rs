@@ -1,3 +1,4 @@
+use std::fmt;
 use std::iter::Peekable;
 use std::str::Chars;
 
@@ -14,6 +15,24 @@ pub enum Token {
     True,
     False,
     Null,
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Token::LeftSquareBracket => write!(f, "["),
+            Token::LeftCurlyBracket => write!(f, "{{"),
+            Token::RightSquareBracket => write!(f, "]"),
+            Token::RightCurlyBracket => write!(f, "}}"),
+            Token::Colon => write!(f, ":"),
+            Token::Comma => write!(f, ","),
+            Token::String(string) => write!(f, "{:?}", *string),
+            Token::Number(number) => write!(f, "{:?}", *number),
+            Token::True => write!(f, "true"),
+            Token::False => write!(f, "false"),
+            Token::Null => write!(f, "null"),
+        }
+    }
 }
 
 pub fn tokenize(source: &str) -> Result<Vec<Token>, String> {

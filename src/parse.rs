@@ -35,7 +35,7 @@ fn parse_value(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> 
             Token::String(string) => Ok(Value::String(string.clone())),
             Token::LeftSquareBracket => parse_array(tokens),
             Token::LeftCurlyBracket => parse_object(tokens),
-            _ => Err(format!("unexpected token: {:?}", token)),
+            _ => Err(format!("unexpected token: {}", token)),
         }
     } else {
         Err("unexpected EOF".to_string())
@@ -69,7 +69,7 @@ fn parse_array(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String> 
                     array.push(value);
                 }
                 _ => {
-                    return Err(format!("unexpected token: {:?}", token));
+                    return Err(format!("unexpected token: {}", token));
                 }
             }
         } else {
@@ -105,7 +105,7 @@ fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String>
                     hash.insert(key, value);
                 }
                 _ => {
-                    return Err(format!("unexpected token: {:?}", token));
+                    return Err(format!("unexpected token: {}", token));
                 }
             }
         } else {
@@ -194,6 +194,6 @@ mod tests {
 
     #[test]
     fn parse_error_trailing_token() {
-        assert_eq!(parse("{},"), Err("unexpected token: Comma".to_string()));
+        assert_eq!(parse("{},"), Err("unexpected token: ,".to_string()));
     }
 }
