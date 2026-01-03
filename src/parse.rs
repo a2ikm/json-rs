@@ -115,17 +115,21 @@ fn parse_object(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<Value, String>
 }
 
 fn parse_key_value_pair(tokens: &mut Peekable<Iter<'_, Token>>) -> Result<(String, Value), String> {
-    let Some(Token::String(key)) = tokens.next() else {
-        return Err("unexpected token for key".to_string());
+    let key = match tokens.next() {
+        Some(Token::String(string)) => string.clone(),
+        Some(token) => return Err(format!("unexpected token: {}", token)),
+        None => return Err("unexpected EOF".to_string()),
     };
 
-    if Some(&Token::Colon) != tokens.next() {
-        return Err("unexpected token for colon".to_string());
+    match tokens.next() {
+        Some(Token::Colon) => (),
+        Some(token) => return Err(format!("unexpected token: {}", token)),
+        None => return Err("unexpected EOF".to_string()),
     }
 
     let value = parse_value(tokens)?;
 
-    Ok((key.clone(), value))
+    Ok((key, value))
 }
 
 #[cfg(test)]
