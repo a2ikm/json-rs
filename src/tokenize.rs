@@ -117,7 +117,7 @@ fn read_hex_digits_char(chars: &mut Peekable<Chars>) -> Result<char> {
 
     while let Some(&ch) = chars.peek() {
         if ch == '"' {
-            // To break the outer while loop with `"`, we can't consume it.
+            // To break the outer while loop with `"`, we don't consume it here.
             break;
         } else {
             hex_digits.push(ch);
